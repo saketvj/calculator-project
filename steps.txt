@@ -1,0 +1,10 @@
+1.Add basic feature like add,sub,mult,divide of just two numbers.
+using 
+=====  2+4   '2.2+3.4' both cases done 
+==== 2 + 4+3.4
+- '2*3-3/4.03'
+ multiple operators .
+=======         2+4*((3-5)/3)
+                24+*35-3/
+string parsing ->
+--
