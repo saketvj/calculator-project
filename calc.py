@@ -43,57 +43,67 @@ st = []
 output = []
 number = ''
 
-for char in expression:
-    if char in precedence:
-        
-        if number:
-            output.append(float(number))
+# function to convert input expression to tokens. we need to handle multi digit and decimal numbers and handle operators and parentheses as well. 
+
+def flush_number( lst, number):
+    
+    if number:
+        lst.append(float(number))
         number = ''
-        if len(st) > 0 and st[-1] == '(':
-            st.append(char) 
-        elif len(st) > 0 and precedence[st[-1]] >= precedence[char]: 
-            while len(st) > 0 and st[-1] != '(' and precedence[st[-1]] >= precedence[char]:
-                output.append(st[-1])
-                st.pop()
-            st.append(char)
+    return number
+    
+def tokeniser(expression):
+    number = ''
+    tokens = []
+    for char in expression:
+        if char in precedence or char in '()':
+            number = flush_number( tokens, number)
+            tokens.append(char)
         else:
-            st.append(char)
-       
+            number +=char
+    number = flush_number(tokens, number)
+    return tokens
 
-    elif char == '(':
-        st.append(char)
-        if number:
-            output.append(float(number))
-        number = ''
-    elif char == ')':
-        if number:
-            output.append(float(number))
-        number = ''
-        while st[-1] != '(':
-            output.append(st[-1])
-            st.pop()
-        st.pop()
+
+def convert_to_rpn(tokens):
+    st = []
+    output = []
+
+    for token in tokens:
+        if token in precedence:
+            while len(st) > 0 and st[-1] != '(' and precedence[st[-1]] >= precedence[token]:
+                
+                output.append(('Operator', st[-1]))
+                st.pop()
+            st.append(token)
         
-    else:
-        # we need to handle multi digit and decimal numbers here.
-        number += char
-        # directly pushing the numbers in the output.
+        elif token == '(':
+            st.append(token)
 
+        elif token == ')':
+            
+            while st[-1] != '(':
+                output.append(('Operator', st[-1]))
+                st.pop()
+            st.pop()
+        else:
+            output.append(('Operand', token))
 # print(number)
-if number:
-    output.append(float(number))
-while len(st) > 0:
-    output.append(st[-1])
-    st.pop()
-# print(output)
+# output.append(number)
+    while len(st) > 0:
+        output.append(('Operator', st[-1]))
+        st.pop()
+    
+    return output
 
-# some edge cases to consider:
-# 1. negative numbers.
-# 2. multplication when no multiplication sign is given. eg 2(3+4) should be treated as 2*(3+4).
-# 3. multiple operators in a row. eg 2++3 should be treated as 2+3.
-# 4. exponentiation operator. eg 2^3 should be treated as 2**3.
 
-# now we have the output in the form of RPN. we need to evaluate it now.
+# # some edge cases to consider:
+# # 1. negative numbers.
+# # 2. multplication when no multiplication sign is given. eg 2(3+4) should be treated as 2*(3+4).
+# # 3. multiple operators in a row. eg 2++3 should be treated as 2+3.
+# # 4. exponentiation operator. eg 2^3 should be treated as 2**3.
+
+# # now we have the output in the form of RPN. we need to evaluate it now.
 
 def solve(a,b,char):
     if char == '+':
@@ -107,18 +117,28 @@ def solve(a,b,char):
             raise ValueError("Cannot divide by zero")
         return a/b
         
-temp = []
 
-for char in output:
-    if char in precedence:
-        b = temp.pop()
-        a = temp.pop()
-        # print(a,b)
-        ans = solve(a,b,char)
-        temp.append(ans)
-    else:
-        temp.append(char)
 
-result = temp.pop()
+def evaluator(output):
+    temp = []
+    for token_type,value in output:
+        
+        if token_type == 'Operator':
+            if len(temp) < 2:
+                raise ValueError("Invalid expression")
+            b = temp.pop()
+            a = temp.pop()
+            # print(a,b)
+            ans = solve(a,b,value)
+            temp.append(ans)
+        else:
+            temp.append(value)
+    result = temp.pop()
+    return result
 
-print(result)
+
+
+# print(tokeniser(expression))
+# print(convert_ti_rpn(tokeniser(expression)))
+print(evaluator(convert_to_rpn(tokeniser(expression))))
+# print(result)
